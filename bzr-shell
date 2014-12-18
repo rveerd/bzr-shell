@@ -1,0 +1,32 @@
+#!/bin/sh
+###############################################################################
+# A limited shell for remote access to Bazaar repositories.
+###############################################################################
+
+set -o errexit
+set -o nounset
+
+# Make sure the log file exists and is writeable by the Bazaar user.
+access_log="/var/log/bzr-shell.log"
+
+if [ $# -ne 2 ] || [ "$1" != "-c" ]
+then
+	echo "`date` Interactive shell not permitted for '$USER' from '$SSH_CONNECTION'" >>$access_log
+	echo "Interactive shell not permitted"
+	exit 1
+fi
+
+case "$2" in
+"bzr serve"*)
+	;;
+*)
+	echo "`date` Command not permitted for '$USER' from '$SSH_CONNECTION'" >>$access_log
+	echo "Command not permitted"
+	exit 1
+	;;
+esac
+
+echo "`date ` Running '$2' as '$USER' from '$SSH_CONNECTION'" >>$access_log
+
+# This effective runs the following command: /bin/sh -c "bzr serve --inet --directory=/ --allow-writes"
+/bin/sh "$@"
